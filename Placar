@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Placar Tênis de Mesa FTMERJ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ftmerj-blue: #b8dcff;
+            --dark-bg: #222;
+            --text-shadow: 2px 2px 4px #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            height: 100dvh; /* Use dynamic viewport height for mobile browsers */
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark-bg);
+        }
+
+        /* General Typography & UI classes */
+        .font-bebas { font-family: 'Bebas Neue', cursive; text-transform: uppercase; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        .text-contrast { color: #fff; text-shadow: var(--text-shadow); }
+        .hidden { opacity: 0; pointer-events: none; z-index: -1 !important; }
+
+        /* Screen Container Styles */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+            z-index: 10;
+            background-color: var(--dark-bg);
+        }
+
+        /* FTMERJ Logo Styling */
+        .ftmerj-logo {
+            width: clamp(150px, 30vw, 250px);
+            height: auto;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+        }
+
+        /* Configuration Screen Styles */
+        #config-screen { padding: 2rem; color: #fff; }
+        .config-title { font-size: clamp(2.5rem, 6vw, 5rem); margin-bottom: 1rem; letter-spacing: 2px; text-align: center; }
+        .input-group { margin-bottom: 1.5rem; width: 100%; max-width: 500px; }
+        .input-group label { display: block; margin-bottom: 0.5rem; font-size: 1.2rem; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.2rem;
+            border: 2px solid #555;
+            border-radius: 8px;
+            background-color: #333;
+            color: #fff;
+            outline: none;
+        }
+        .input-group input:focus, .input-group select:focus { border-color: var(--ftmerj-blue); }
+        .btn-large {
+            padding: 1.2rem 3rem;
+            font-size: 2rem;
+            border: none;
+            border-radius: 12px;
+            background-color: var(--ftmerj-blue);
+            color: #000;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        .btn-large:active { transform: scale(0.95); background-color: #9fcaff; }
+        .footer-message {
+            position: absolute;
+            bottom: 1rem;
+            font-size: 0.9rem;
+            text-align: center;
+            opacity: 0.7;
+            width: 90%;
+            color: #fff;
+        }
+
+        /* Game Screen Styles */
+        #game-screen {
+            flex-direction: row;
+            background: linear-gradient(90deg, var(--ftmerj-blue) 0%, var(--ftmerj-blue) 48%, #ffffff 52%, #ffffff 100%);
+        }
+        .play-area {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            user-select: none;
+            cursor: pointer;
+            padding: 2rem 1rem;
+            position: relative;
+        }
+        .play-area::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(255,255,255,0.3); opacity: 0; transition: opacity 0.1s; pointer-events: none;
+        }
+        .play-area:active::after { opacity: 1; }
+        
+        .player-info {
+            text-align: center;
+            transition: all 0.3s ease;
+            padding: 0 0.5rem;
+            max-width: 100%;
+        }
+        .player-info.is-swapping { opacity: 0; transform: scale(0.8); }
+        
+        .player-name {
+            font-size: 48px; 
+            margin-bottom: 0.5rem; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            max-width: 100%;
+        }
+        
+        .player-sets { font-size: clamp(1.5rem, 3vw, 2.5rem); }
+        .score-display { 
+            font-size: clamp(8rem, 25vw, 18rem); 
+            font-weight: 700; 
+            line-height: 1; 
+            max-width: 90%;
+            text-align: center;
+        }
+
+        /* Set Winner Overlay */
+        #set-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 100;
+            transition: opacity 0.3s ease;
+        }
+        #set-winner-msg {
+            font-size: clamp(2.5rem, 7vw, 6rem);
+            color: #fff;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        /* Winner Screen Styles */
+        #winner-screen { padding: 2rem; text-align: center; color: #fff; }
+        .winner-title { font-size: clamp(3rem, 8vw, 6rem); margin-bottom: 1rem; }
+        .winner-name-large { 
+            font-size: clamp(5rem, 12vw, 10rem); 
+            color: var(--ftmerj-blue); 
+            margin-bottom: 4rem; 
+            line-height: 1.1; 
+            text-shadow: var(--text-shadow); 
+            word-wrap: break-word; 
+            padding: 0 1rem;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="config-screen" class="screen font-bebas">
+        <img id="logo-config" class="ftmerj-logo" alt="Logo FTMERJ" src="ftmerj_logo.png">
+        <h1 class="config-title">Configuração da Partida</h1>
+        <form id="config-form">
+            <div class="input-group font-poppins">
+                <label for="p1-name">Nome do Jogador 1</label>
+                <input type="text" id="p1-name" required placeholder="Ex: Ana Silva" value="Ana Silva" maxlength="40">
+            </div>
+            <div class="input-group font-poppins">
+                <label for="p2-name">Nome do Jogador 2</label>
+                <input type="text" id="p2-name" required placeholder="Ex: João Santos" value="João Santos" maxlength="40">
+            </div>
+            <div class="input-group font-poppins">
+                <label for="match-format">Formato da Partida</label>
+                <select id="match-format">
+                    <option value="3">Melhor de 3 Sets</option>
+                    <option value="5" selected>Melhor de 5 Sets</option>
+                    <option value="7">Melhor de 7 Sets</option>
+                </select>
+            </div>
+            <div style="text-align: center; margin-top: 2rem;">
+                <button type="submit" class="btn-large font-bebas">INICIAR PARTIDA</button>
+            </div>
+        </form>
+        <div class="footer-message font-poppins" id="config-footer">
+            FEITO POR: GUILHERME, RYAN TAVARES, RYAN SAMUEL E THIAGO. TURMA 81. SISTEMA RESPIRATÓRIO
+        </div>
+    </div>
+
+    <div id="game-screen" class="screen hidden">
+        <div id="left-area" class="play-area">
+            <div class="player-info text-contrast">
+                <div id="left-name" class="player-name font-bebas" data-player-id="0">Player 1</div>
+                <div class="player-sets font-poppins">Sets: <span id="left-sets">0</span></div>
+            </div>
+            <div id="left-score" class="score-display text-contrast font-poppins" aria-live="polite">0</div>
+        </div>
+        <div id="right-area" class="play-area">
+            <div class="player-info text-contrast">
+                <div id="right-name" class="player-name font-bebas" data-player-id="1">Player 2</div>
+                <div class="player-sets font-poppins">Sets: <span id="right-sets">0</span></div>
+            </div>
+            <div id="right-score" class="score-display text-contrast font-poppins" aria-live="polite">0</div>
+        </div>
+        <div id="set-overlay" class="hidden">
+            <div id="set-winner-msg" class="font-bebas"></div>
+        </div>
+    </div>
+
+    <div id="winner-screen" class="screen hidden font-bebas">
+        <img id="logo-winner" class="ftmerj-logo" alt="Logo FTMERJ" src="ftmerj_logo.png">
+        <h1 class="winner-title">VENCEDOR DA PARTIDA</h1>
+        <div id="final-winner-name" class="winner-name-large text-contrast">PLAYER NAME</div>
+        <button id="restart-btn" class="btn-large">JOGAR NOVAMENTE</button>
+        <div class="footer-message font-poppins" id="winner-footer">
+            FEITO POR: GUILHERME, RYAN TAVARES, RYAN SAMUEL E THIAGO. TURMA 81. SISTEMA RESPIRATÓRIO
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+
+        // --- DOM Elements ---
+        const screens = {
+            config: document.getElementById('config-screen'),
+            game: document.getElementById('game-screen'),
+            winner: document.getElementById('winner-screen')
+        };
+        const configForm = document.getElementById('config-form');
+        const p1Input = document.getElementById('p1-name');
+        const p2Input = document.getElementById('p2-name');
+        const formatSelect = document.getElementById('match-format');
+        const gameUI = {
+            leftArea: document.getElementById('left-area'),
+            rightArea: document.getElementById('right-area'),
+            leftName: document.getElementById('left-name'),
+            rightName: document.getElementById('right-name'),
+            leftScore: document.getElementById('left-score'),
+            rightScore: document.getElementById('right-score'),
+            leftSets: document.getElementById('left-sets'),
+            rightSets: document.getElementById('right-sets'),
+            playerNameDivs: [document.getElementById('left-name'), document.getElementById('right-name')],
+            playerInfos: document.querySelectorAll('.player-info'),
+            setOverlay: document.getElementById('set-overlay'),
+            setMsg: document.getElementById('set-winner-msg'),
+        };
+        const finalWinnerName = document.getElementById('final-winner-name');
+        const restartBtn = document.getElementById('restart-btn');
+
+        let gameState = {
+            status: 'CONFIG', // CONFIG, PLAYING, PAUSED, FINISHED
+            players: [
+                { id: 0, name: '', score: 0, sets: 0 },
+                { id: 1, name: '', score: 0, sets: 0 }
+            ],
+            leftPlayerIdx: 0,
+            rightPlayerIdx: 1,
+            setsToWin: 0,
+            inputBlocked: false
+        };
+        let setWinTimeout = null;
+
+        // --- Helper Functions ---
+        const getLeftPlayer = () => gameState.players[gameState.leftPlayerIdx];
+        const getRightPlayer = () => gameState.players[gameState.rightPlayerIdx];
+
+        const switchScreen = (screenName) => {
+            if (setWinTimeout) {
+                clearTimeout(setWinTimeout);
+                setWinTimeout = null;
+            }
+            gameUI.setOverlay.classList.add('hidden');
+
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            screens[screenName].classList.remove('hidden');
+        };
+        
+        // Function to dynamically size the player name font
+        const adjustNameFont = (element, name) => {
+            element.textContent = name;
+            element.style.fontSize = '48px';
+            
+            // Measure the space available (using the parent area's width)
+            const maxW = element.parentElement.offsetWidth * 0.95; 
+            const currentW = element.scrollWidth;
+
+            if (currentW > maxW) {
+                let newSize = Math.floor(48 * (maxW / currentW));
+                newSize = Math.max(newSize, 20); 
+                element.style.fontSize = `${newSize}px`;
+            } else {
+                element.style.fontSize = '48px'; 
+            }
+        };
+
+        const updateGameUI = () => {
+            const pLeft = getLeftPlayer();
+            const pRight = getRightPlayer();
+
+            adjustNameFont(gameUI.leftName, pLeft.name);
+            gameUI.leftScore.textContent = pLeft.score;
+            gameUI.leftSets.textContent = pLeft.sets;
+
+            adjustNameFont(gameUI.rightName, pRight.name);
+            gameUI.rightScore.textContent = pRight.score;
+            gameUI.rightSets.textContent = pRight.sets;
+        };
+
+        const resetMatchState = () => {
+            gameState.players.forEach(p => { p.score = 0; p.sets = 0; });
+            gameState.leftPlayerIdx = 0;
+            gameState.rightPlayerIdx = 1;
+            gameState.inputBlocked = false;
+            gameState.status = 'CONFIG';
+
+            if (setWinTimeout) {
+                clearTimeout(setWinTimeout);
+                setWinTimeout = null;
+            }
+            gameUI.setOverlay.classList.add('hidden');
+        };
+
+        // --- Game Logic ---
+        const startGame = (e) => {
+            e.preventDefault();
+            const p1Name = p1Input.value.trim();
+            const p2Name = p2Input.value.trim();
+            if (!p1Name || !p2Name) {
+                alert('Por favor, insira os nomes dos dois jogadores.');
+                return;
+            }
+
+            gameState.players[0].name = p1Name;
+            gameState.players[1].name = p2Name;
+            const format = parseInt(formatSelect.value);
+            gameState.setsToWin = Math.ceil(format / 2);
+            gameState.status = 'PLAYING';
+
+            updateGameUI();
+            switchScreen('game');
+        };
+
+        const handleScore = (side) => {
+            if (gameState.status !== 'PLAYING' || gameState.inputBlocked) return;
+
+            const player = side === 'left' ? getLeftPlayer() : getRightPlayer();
+            player.score++;
+            updateGameUI();
+            checkSetWin();
+        };
+
+        const checkSetWin = () => {
+            const pLeft = getLeftPlayer();
+            const pRight = getRightPlayer();
+            let winner = null;
+
+            if (pLeft.score >= 11 && pLeft.score - pRight.score >= 2) {
+                winner = pLeft;
+            } else if (pRight.score >= 11 && pRight.score - pLeft.score >= 2) {
+                winner = pRight;
+            }
+
+            if (winner) {
+                endSet(winner);
+            }
+        };
+
+        const endSet = (winner) => {
+            gameState.inputBlocked = true;
+            gameState.status = 'PAUSED';
+            winner.sets++;
+            updateGameUI(); 
+
+            // Show overlay
+            gameUI.setMsg.textContent = `${winner.name} VENCEU O SET!`;
+            gameUI.setOverlay.classList.remove('hidden');
+
+            setWinTimeout = setTimeout(() => {
+                gameUI.setOverlay.classList.add('hidden');
+                setWinTimeout = null;
+
+                if (checkMatchWin()) return;
+                
+                // Reset scores
+                gameState.players.forEach(p => p.score = 0);
+                
+                // Start animated swap
+                gameUI.playerInfos.forEach(el => el.classList.add('is-swapping'));
+                
+                setTimeout(() => {
+                    const tempIdx = gameState.leftPlayerIdx;
+                    gameState.leftPlayerIdx = gameState.rightPlayerIdx;
+                    gameState.rightPlayerIdx = tempIdx;
+                    
+                    updateGameUI();
+                    
+                    gameUI.playerInfos.forEach(el => el.classList.remove('is-swapping'));
+                    gameState.inputBlocked = false;
+                    gameState.status = 'PLAYING';
+                }, 300); 
+                
+            }, 5000);
+        };
+
+        const checkMatchWin = () => {
+            const winner = gameState.players.find(p => p.sets >= gameState.setsToWin);
+            if (winner) {
+                gameState.status = 'FINISHED';
+                finalWinnerName.textContent = winner.name;
+                switchScreen('winner');
+                return true;
+            }
+            return false;
+        };
+
+        const restartGame = () => {
+            resetMatchState();
+            switchScreen('config');
+        };
+
+        // --- Event Listeners and Initializers ---
+
+        configForm.addEventListener('submit', startGame);
+        restartBtn.addEventListener('click', restartGame);
+        
+        window.addEventListener('resize', () => {
+            if (gameState.status === 'PLAYING' || gameState.status === 'PAUSED') {
+                updateGameUI(); 
+            }
+        });
+
+        // Scoring Inputs (Touch and Mouse)
+        let isMouseDown = false;
+        const handleInteraction = (e, side) => {
+            if (e.type.startsWith('touch')) {
+                e.preventDefault(); 
+            } 
+            
+            if (e.type === 'mousedown') {
+                if (isMouseDown) return;
+                isMouseDown = true;
+            }
+
+            handleScore(side);
+        };
+        
+        document.addEventListener('mouseup', () => {
+            isMouseDown = false;
+        });
+
+        gameUI.leftArea.addEventListener('touchstart', (e) => handleInteraction(e, 'left'), { passive: false });
+        gameUI.leftArea.addEventListener('mousedown', (e) => handleInteraction(e, 'left'));
+        
+        gameUI.rightArea.addEventListener('touchstart', (e) => handleInteraction(e, 'right'), { passive: false });
+        gameUI.rightArea.addEventListener('mousedown', (e) => handleInteraction(e, 'right'));
+
+        // Keyboard Fallback
+        document.addEventListener('keydown', (e) => {
+            if (gameState.status !== 'PLAYING') return;
+            if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') {
+                handleScore('left');
+            } else if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') {
+                handleScore('right');
+            }
+        });
+
+        // Prevent scrolling globally when in game mode
+        document.addEventListener('touchmove', (e) => {
+            if (gameState.status === 'PLAYING' || gameState.status === 'PAUSED') {
+                e.preventDefault(); 
+            }
+        }, { passive: false });
+
+        // Initial setup
+        resetMatchState();
+    </script>
+</body>
+</html>
